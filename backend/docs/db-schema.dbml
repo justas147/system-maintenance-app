@@ -1,0 +1,95 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id uuid [primary key]
+  name varchar
+  email e
+  password varchar
+  googleId varchar
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Table teamUsers {
+  id uuid [primary key]
+  role enum
+  userId uuid
+  teamId uuid
+  isAvailable boolean
+  latestOncall timestamp
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Table teams {
+  id uuid [primary key]
+  name varchar
+  configuration json
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Table notifications {
+  id uuid [primary key]
+  configuration json
+  teamId uuid
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Ref: notifications.teamId > teams.id
+
+Table servers {
+  id uuid [primary key]
+  endpoint varchar
+  configuration json
+  teamId uuid
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Ref: servers.teamId > teams.id
+
+Ref: teamUsers.userId > users.id
+Ref: teamUsers.teamId > teams.id
+
+Table schedules {
+  id uuid [primary key]
+  userId uuid
+  teamId uuid
+  startAt datetime
+  endAt datetime
+  isActive bool
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Ref: schedules.userId > users.id // many-to-one
+Ref: schedules.teamId > teams.id
+
+Table alerts {
+  id uuid [primary key]
+  isHandled bool
+  isEscalated bool
+  alertMessage TEXT
+  alertSource varchar
+  alertTime timestamp
+  alertType string
+  responseDeadline timestamp
+  handledAt timestamp
+  handledBy uuid
+  teamId uuid
+  createAt timestamp
+  updateAt timestamp
+  deleteAt timestamp
+}
+
+Ref: alerts.handledBy > users.id // many-to-one
+Ref: alerts.teamId > teams.id
