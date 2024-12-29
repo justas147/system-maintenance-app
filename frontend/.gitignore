@@ -18,3 +18,9 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
+.env
+
+# build failes with this excluded...
+# https://github.com/expo/expo/issues/9220
+# google-services.json

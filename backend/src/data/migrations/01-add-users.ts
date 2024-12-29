@@ -13,6 +13,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('email').notNullable().unique();
     table.string('password').nullable();
     table.string('googleId').unique();
+    table.boolean('isSuperAdmin').defaultTo(false);
+    table.string('pushNotificationToken').nullable();
   });
 };
 

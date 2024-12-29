@@ -1,14 +1,14 @@
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
-import { team } from './02-teams';
-import moment from 'moment';
+import { teams } from './02-teams';
 import { users } from './01-users';
 
 const date = new Date();
 const alerts = [
   {
     id: uuidv4(),
-    teamId: team.id,
+    teamId: teams[0].id,
+    alertTitle: 'High CPU Usage',
     alertMessage: 'Server CPU usage high!',
     alertSource: 'Slack',
     handledBy: users[0].id,
@@ -17,7 +17,8 @@ const alerts = [
   },
   {
     id: uuidv4(),
-    teamId: team.id,
+    teamId: teams[0].id,
+    alertTitle: 'Database Connection Issues',
     alertMessage: 'Database connection issues detected!',
     alertSource: 'Monitoring Tool',
     alertTime: date,

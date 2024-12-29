@@ -10,6 +10,8 @@ export async function up(knex: Knex): Promise<void> {
     columns.timestamps();
 
     table.string('name').notNullable();
+    table.string('webhookToken').nullable();
+    table.string('notificationType').notNullable().defaultTo('push-notification');
     table.json('configuration').nullable();
   });
 };

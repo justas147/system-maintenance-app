@@ -1,7 +1,8 @@
 export type Alert = {
   id: string;
   teamId: string;
-  handledBy: string;
+  handledBy?: string;
+  alertTitle: string;
   alertMessage: string;
   alertSource: string;
   alertTime: Date;

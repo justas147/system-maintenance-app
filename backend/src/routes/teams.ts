@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import PromiseRouter from 'express-promise-router';
 import TeamsController from '../modules/teams/TeamsController';
-import { isAdmin } from '../middleware/adminMiddleware';
+import { isTeamAdmin } from '../middleware/teamAdminMiddleware';
 import { verifyToken } from '../middleware/authMiddleware';
 import { validateSchema } from '../middleware/schemaValidator';
 import schemas from '../schemas';
+import { isSuperAdmin } from '../middleware/superAdminMiddleware';
 
 const route = PromiseRouter();
 
@@ -20,49 +21,26 @@ export const TeamRoutes = (app: Router): void => {
  
   /**
    * @swagger
-   * /teams:
+   * /teams/user/{userId}:
    *  get:
    *    tags: [Teams]
-   *    summary: Get all teams
-   *    description: Retrieve a list of all teams
-   *    responses:
-   *      200:
-   *        description: A list of teams
-   *      404:
-   *        description: Teams not found
-   */
-  route.get(
-    '/',
-    verifyToken,
-    isAdmin, 
-    async (req: any, res: any) => {
-      const teams = await TeamsController.getAll();
-      res.json(teams);
-    }
-  );
-
-  /**
-   * @swagger
-   * /teams/{userId}:
-   *  get:
-   *    tags: [Teams]
-   *    summary: Get a team by user ID
-   *    description: Retrieve a team by user ID
+   *    summary: Get teams by user ID
+   *    description: Retrieve teams data by user ID
    *    parameters:
    *      - in: path
    *        name: userId
    *        required: true
-   *        description: ID of the user to retrieve the team
+   *        description: ID of the user to retrieve the teams
    *        schema:
    *          type: string
    *    responses:
    *      200:
-   *        description: A team object
+   *        description: A team list
    *      404:
    *        description: Team not found
    */
   route.get(
-    '/:userId',
+    '/user/:userId',
     verifyToken,
     validateSchema(schemas.teams.getUserTeamSchema), 
     async (req: any, res: any) => {
@@ -92,15 +70,38 @@ export const TeamRoutes = (app: Router): void => {
    *        description: Team not found
    */
   route.get(
-    '/:id',
+    '/:teamId',
     verifyToken,
-    validateSchema(schemas.teams.getUserTeamSchema), 
+    validateSchema(schemas.teams.getTeamMembersSchema), 
     async (req: any, res: any) => {
       const team = await TeamsController.getTeamById(req);
       res.json(team);
     }
   );
 
+  /**
+   * @swagger
+   * /teams:
+   *  get:
+   *    tags: [Teams]
+   *    summary: Get all teams
+   *    description: Retrieve a list of all teams
+   *    responses:
+   *      200:
+   *        description: A list of teams
+   *      404:
+   *        description: Teams not found
+   */
+  route.get(
+    '/',
+    verifyToken,
+    isSuperAdmin, 
+    async (req: any, res: any) => {
+      const teams = await TeamsController.getAll();
+      res.json(teams);
+    }
+  );
+  
   /**
    * @swagger
    * /teams:
@@ -195,7 +196,7 @@ export const TeamRoutes = (app: Router): void => {
   route.delete(
     '/:id',
     verifyToken,
-    isAdmin,
+    isTeamAdmin,
     validateSchema(schemas.teams.getTeamSchema), 
     async (req: any, res: any) => {
       await TeamsController.deleteTeam(req);
@@ -262,7 +263,7 @@ export const TeamRoutes = (app: Router): void => {
   route.post(
     '/:teamId/members/:userId',
     verifyToken,
-    isAdmin,
+    isTeamAdmin,
     validateSchema(schemas.teams.getTeamBothIdsSchema),
     async (req: any, res: any) => {
       const newMember = await TeamsController.addTeamMember(req);
@@ -297,7 +298,7 @@ export const TeamRoutes = (app: Router): void => {
   route.delete(
     '/:teamId/members/:userId',
     verifyToken,
-    isAdmin,
+    isTeamAdmin,
     validateSchema(schemas.teams.getTeamBothIdsSchema),
     async (req: any, res: any) => {
       await TeamsController.removeTeamMember(req);
@@ -343,7 +344,7 @@ export const TeamRoutes = (app: Router): void => {
   route.put(
     '/:teamId/members/:userId',
     verifyToken,
-    isAdmin,
+    isTeamAdmin,
     validateSchema(schemas.teams.getTeamBothIdsSchema),
     async (req: any, res: any) => {
       const updatedMember = await TeamsController.updateTeamMember(req);

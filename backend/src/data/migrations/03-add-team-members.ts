@@ -10,6 +10,7 @@ export async function up(knex: Knex): Promise<void> {
     columns.timestamps();
 
     table.string('role').defaultTo('member');
+    table.string('color').nullable();
     table.boolean('isAvailable').defaultTo(true);
     table.timestamp('lastOnCall').nullable();
 

@@ -36,7 +36,11 @@ export const googleCallback = async (req: Request, res: Response) => {
     'google',
     { session: false },
     (req: Request, res: Response) => {
-      const token = jwt.sign({ id: (req.user as any).id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+      const token = jwt.sign(
+        { id: (req.user as any).id }, 
+        process.env.JWT_SECRET!, 
+        { expiresIn: process.env.JWT_EXPIRES_IN ?? '30d' },
+      );
       
       res.redirect(`http://localhost:3000/?token=${token}`);
     }

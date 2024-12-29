@@ -1,0 +1,74 @@
+services:
+  app:
+    image: "app_${NODE_ENV}"
+    environment:
+      - NODE_ENV:${NODE_ENV}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    entrypoint: ["yarn", "start:${NODE_ENV}"]
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    restart: unless-stopped
+    depends_on:
+      - db
+
+  alert-checker:
+    image: "alert_checker_${NODE_ENV}"
+    environment:
+      - NODE_ENV:${NODE_ENV}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    entrypoint: ["yarn", "alertChecker:${NODE_ENV}"]
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    restart: unless-stopped
+
+  db:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    volumes:
+      - type: volume
+        source: mysql
+        target: /usr/lib/mysql
+
+  adminer:
+    image: adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "8080:8080"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  # redis:
+  #   image: redis
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  mysql:

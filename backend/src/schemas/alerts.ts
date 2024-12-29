@@ -10,14 +10,21 @@ const getAlertsSchema: RequestValidationSchema = {
 const getUserAlertsSchema: RequestValidationSchema = {
   params: Joi.object({
     userId: Joi.string().guid().required(),
+    teamId: Joi.string().guid().required(),
+  }),
+};
+
+const getTeamAlertsSchema: RequestValidationSchema = {
+  params: Joi.object({
+    teamId: Joi.string().guid().required(),
   }),
 };
 
 const postAlertSchema: RequestValidationSchema  = {
   body: Joi.object({
-    alertMessage: Joi.string(),
+    alertMessage: Joi.string().required(),
+    alertTitle: Joi.string().required(),
     alertSource: Joi.string(),
-    alertTime: Joi.date(),
     alertType: Joi.string(),
   }),
 };
@@ -25,6 +32,7 @@ const postAlertSchema: RequestValidationSchema  = {
 const updateAlertSchema: RequestValidationSchema = {
   body: Joi.object({
     alertMessage: Joi.string(),
+    alertTitle: Joi.string(),
     alertSource: Joi.string(),
     alertTime: Joi.date(),
     alertType: Joi.string(),
@@ -39,6 +47,7 @@ const updateAlertSchema: RequestValidationSchema = {
 export default {
   getAlertsSchema,
   getUserAlertsSchema,
+  getTeamAlertsSchema,
   postAlertSchema,
   updateAlertSchema,
 }

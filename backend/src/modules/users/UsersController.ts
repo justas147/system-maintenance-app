@@ -1,13 +1,16 @@
 import { Request } from "express";
 import { HttpError } from "../../core/errorHandler";
 import UsersData from "./UsersData";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { pick } from "../../utils/sanitizerUtils";
 import { User } from "./types/User";
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 
 const login = async (req: Request): Promise<any> => {
   const { email, password } = req.body;
+
+  console.info(`Logging in user: ${email}`);
 
   let user;
   try {
@@ -33,12 +36,18 @@ const login = async (req: Request): Promise<any> => {
     throw new HttpError(500, 'Server error 2');
   }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+  // TODO: instead of long lasting token, use short lived token and refresh token
+  const token = jwt.sign(
+    { id: user.id }, 
+    process.env.JWT_SECRET!, 
+    { expiresIn: process.env.JWT_EXPIRES_IN ?? '30d' }
+  );
   return { message: 'Login successful', token };
 }
 
 const register = async (req: Request): Promise<User> => {
-  const { username: name, password, email } = req.body;
+  console.log(`Registering user: ${JSON.stringify(req.body)}`);
+  const { name, password, email, pushNotificationToken } = req.body;
 
   try {
     const existingUser = await UsersData.findByEmail(email);
@@ -47,11 +56,35 @@ const register = async (req: Request): Promise<User> => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await UsersData.create({ name, email, password: hashedPassword });
+
+    let newUser;
+    if (pushNotificationToken) {
+      console.log(`Push notification token: ${pushNotificationToken}`);
+      newUser = await UsersData.create({ name, email, password: hashedPassword, pushNotificationToken });
+    } else {
+      newUser = await UsersData.create({ name, email, password: hashedPassword });
+    }
+
+    if (!newUser) {
+      throw new HttpError(500, 'Server error');
+    }
+
+    // TODO: move this to a service, add sparkpost
+    const transporter = nodemailer.createTransport({
+      host: "mailhog",
+      port: "1025",
+    });
+
+    await transporter.sendMail({
+      from: 'app@my-app.com',
+      to: email,
+      subject: 'Welcome to our platform',
+      text: `Hello ${name}, welcome to our platform!`,
+    });
 
     return newUser;
   } catch (err) {
-    throw new HttpError(500, 'Server error');
+    throw new HttpError(500, err.message);
   }
 };
 
@@ -80,6 +113,11 @@ const create = async (req: Request): Promise<User> => {
 
   try {
     const createdUser = await UsersData.create(newUser);
+
+    if (!createdUser) {
+      throw new HttpError(500, 'Server error');
+    }
+
     return createdUser;
   } catch (err) {
     throw new HttpError(500, 'Server error');
@@ -88,6 +126,7 @@ const create = async (req: Request): Promise<User> => {
 
 const update = async (req: Request): Promise<User> => {
   const { id } = req.params;
+  console.log(`Updating user: ${id}`);
   const userUpdate = pick(req.body, [
     'name', 
     'email',
@@ -96,6 +135,11 @@ const update = async (req: Request): Promise<User> => {
 
   try {
     const updatedUser = await UsersData.update(id, userUpdate);
+
+    if (!updatedUser) {
+      throw new HttpError(500, 'Server error');
+    }
+
     return updatedUser;
   } catch (err) {
     throw new HttpError(500, 'Server error');
@@ -104,7 +148,7 @@ const update = async (req: Request): Promise<User> => {
 
 const deleteUser = async (req: Request): Promise<void> => {
   const { id } = req.params;
-
+  console.log(`Deleting user: ${id}`);
   try {
     await UsersData.deleteById(id);
   } catch (err) {

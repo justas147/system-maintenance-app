@@ -17,6 +17,78 @@ export const ScheduleRoutes = (app: Router): void => {
    *   description: Schedule management
    */
 
+  /**
+   * @swagger
+   * /schedules/teams/{teamId}/user/{userId}/disabled:
+   *   get:
+   *     tags: [Schedules]
+   *     summary: Get disabled date list for team (used in date range selection)
+   *     description: Retrieve a list of all dates to disable by team ID and user ID
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         description: ID of the user to retrieve the schedules
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: teamId
+   *         required: true
+   *         description: ID of the team to retrieve the schedules
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A list of schedules
+   *       404:
+   *         description: Schedules not found
+   */
+  route.get(
+    '/teams/:teamId/user/:userId/disabled',
+    verifyToken,
+    validateSchema(schemas.schedules.getTeamUserScheduleSchema), 
+    async (req: any, res: any) => {
+      const schedules = await SchedulesController.getTeamScheduleDateList(req);
+      res.status(200).json(schedules);
+    }
+  );
+
+  /**
+   * @swagger
+   * /schedules/{teamId}/user/{userId}:
+   *   get:
+   *     tags: [Schedules]
+   *     summary: Get team schedules for user
+   *     description: Retrieve a list of all schedules by team ID and user ID
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         description: ID of the user to retrieve the schedules
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: teamId
+   *         required: true
+   *         description: ID of the team to retrieve the schedules
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A list of schedules
+   *       404:
+   *         description: Schedules not found
+   */
+  route.get(
+    '/teams/:teamId/user/:userId',
+    verifyToken,
+    validateSchema(schemas.schedules.getTeamUserScheduleSchema), 
+    async (req: any, res: any) => {
+      const schedules = await SchedulesController.getTeamScheduleRanges(req);
+      res.status(200).json(schedules);
+    }
+  );
+    
 
   /**
    * @swagger
@@ -39,7 +111,7 @@ export const ScheduleRoutes = (app: Router): void => {
    *         description: Schedules not found
    */
   route.get(
-    '/:userId',
+    '/user/:userId',
     verifyToken,
     validateSchema(schemas.schedules.getUserScheduleSchema), 
     async (req: any, res: any) => {
@@ -69,7 +141,7 @@ export const ScheduleRoutes = (app: Router): void => {
    *         description: Schedules not found
    */
   route.get(
-    '/:teamId',
+    '/teams/:teamId',
     verifyToken,
     validateSchema(schemas.schedules.getTeamScheduleSchema), 
     async (req: any, res: any) => {
@@ -105,42 +177,6 @@ export const ScheduleRoutes = (app: Router): void => {
     async (req: any, res: any) => {
       const schedule = await SchedulesController.getById(req);
       res.status(200).json(schedule);
-    }
-  );
-
-  /**
-   * @swagger
-   * /schedules:
-   *   post:
-   *     tags: [Schedules]
-   *     summary: Create a new schedule
-   *     description: Create a new schedule
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *               teamId:
-   *                 type: string
-   *               userId:
-   *                 type: string
-   *               date:
-   *                 type: string
-   *     responses:
-   *      201:
-   *        description: A schedule object
-   */
-  route.post(
-    '/',
-    verifyToken,
-    validateSchema(schemas.schedules.postScheduleSchema), 
-    async (req: any, res: any) => {
-      const newSchedule = await SchedulesController.create(req);
-      res.status(201).json(newSchedule);
     }
   );
 
@@ -210,8 +246,44 @@ export const ScheduleRoutes = (app: Router): void => {
     verifyToken,
     validateSchema(schemas.schedules.getScheduleSchema), 
     async (req: any, res: any) => {
-      await SchedulesController.deleteSchedule(req);
-      res.status(200).json({ message: 'Schedule deleted'});
+      const afterRemovedSchedule = await SchedulesController.deleteSchedule(req);
+      res.status(200).json(afterRemovedSchedule);
+    }
+  );
+  
+  /**
+   * @swagger
+   * /schedules:
+   *   post:
+   *     tags: [Schedules]
+   *     summary: Create a new schedule
+   *     description: Create a new schedule
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               teamId:
+   *                 type: string
+   *               userId:
+   *                 type: string
+   *               date:
+   *                 type: string
+   *     responses:
+   *      201:
+   *        description: A schedule object
+   */
+  route.post(
+    '/',
+    verifyToken,
+    validateSchema(schemas.schedules.postScheduleSchema), 
+    async (req: any, res: any) => {
+      const newSchedule = await SchedulesController.create(req);
+      res.status(201).json(newSchedule);
     }
   );
 };

@@ -1,8 +1,9 @@
 import { knex } from '../../data/providers/KnexProvider';
 import { NewSchedule, Schedule, ScheduleUpdate } from './types/Schedule';
+import { v4 as uuid } from 'uuid';
 
 const getScheduleTable = () => {
-  return knex.table('schedules');
+  return knex.table('oncall_schedules');
 }
 
 const findAll = async (): Promise<Schedule[]> => {
@@ -15,7 +16,27 @@ const findScheduleById = async (scheduleId: string): Promise<Schedule | null> =>
   return schedule || null;
 }
 
+const findDetailedScheduleById = async (scheduleId: string): Promise<Schedule | null> => {
+  const schedule = await getScheduleTable()
+    .select(
+      'oncall_schedules.*',
+      'users.name as userName',
+      'users.email as userEmail',
+      'team_members.role as teamRole',
+      'team_members.color as teamColor',
+      'teams.name as teamName'
+    )
+    .join('users', 'oncall_schedules.userId', 'users.id')
+    .join('team_members', 'oncall_schedules.teamId', 'team_members.teamId')
+    .join('teams', 'team_members.teamId', 'teams.id')
+    .where('oncall_schedules.id', scheduleId)
+    .first();
+
+  return schedule || null;
+};
+
 const findScheduleByTeamId = async (teamId: string): Promise<Schedule[]> => {
+  console.log('Finding schedules by team id', teamId);
   const schedules = await getScheduleTable().where({ teamId });
   return schedules;
 }
@@ -31,7 +52,19 @@ const findScheduleByTeamIdAndUserId = async (teamId: string, userId: string): Pr
 }
 
 const createSchedule = async (schedule: NewSchedule): Promise<Schedule> => {
-  const [createdSchedule] = await getScheduleTable().insert(schedule).returning('*');
+  // TODO: fix this
+  const id = uuid();
+  await getScheduleTable().insert({
+    id,
+    ...schedule,
+  });
+
+  const createdSchedule = await findScheduleById(id);
+
+  if (!createdSchedule) {
+    throw new Error('Failed to create schedule');
+  }
+
   return createdSchedule;
 }
 
@@ -47,6 +80,7 @@ const deleteSchedule = async (scheduleId: string): Promise<void> => {
 export default {
   findAll,
   findScheduleById,
+  findDetailedScheduleById,
   findScheduleByTeamId,
   findScheduleByUserId,
   findScheduleByTeamIdAndUserId,

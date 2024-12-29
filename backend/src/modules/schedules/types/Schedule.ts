@@ -2,8 +2,8 @@ export type Schedule = {
   id: string;
   teamId: string;
   userId: string;
-  startTime: Date;
-  endTime: Date;
+  startAt: Date;
+  endAt: Date;
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;

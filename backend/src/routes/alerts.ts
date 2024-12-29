@@ -4,7 +4,7 @@ import AlertsController from '../modules/alerts/AlertsController';
 import { validateSchema } from "../middleware/schemaValidator";
 import schemas from "../schemas";
 import { verifyToken } from '../middleware/authMiddleware';
-import { isAdmin } from '../middleware/adminMiddleware';
+import { isTeamAdmin } from '../middleware/teamAdminMiddleware';
 
 const route = PromiseRouter();
 
@@ -20,12 +20,18 @@ export const AlertRoutes = (app: Router): void => {
 
   /**
    * @swagger
-   * /alerts/{userId}:
+   * /alerts/team/{teamId}/user/{userId}:
    *   get:
    *     tags: [Alerts]
-   *     summary: Get all alerts by user ID
-   *     description: Retrieve a list of all alerts by user ID
+   *     summary: Get all alerts by user ID and team ID
+   *     description: Retrieve a list of all alerts by user ID and team ID
    *     parameters:
+   *       - in: path
+   *         name: teamId
+   *         required: true
+   *         description: ID of the team to retrieve alerts
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: userId
    *         required: true
@@ -38,46 +44,58 @@ export const AlertRoutes = (app: Router): void => {
    *       404:
    *         description: Alerts not found
    */
-  route.get(
-    '/:userId',
-    // TODO: use middleware to check if the team is valid?
-    verifyToken,
-    validateSchema(schemas.alerts.getUserAlertsSchema),
-    async (req: any, res: any) => {
-      const alerts = await AlertsController.getUserAlerts(req);
-      res.status(200).json(alerts);
-    }
-  );
-
+    route.get(
+      '/team/:teamId/user/:userId',
+      // TODO: use middleware to check if the team is valid?
+      verifyToken,
+      validateSchema(schemas.alerts.getUserAlertsSchema),
+      async (req: any, res: any) => {
+        const alerts = await AlertsController.getTeamUserAlerts(req);
+        res.status(200).json(alerts);
+      }
+    );
+  
   /**
    * @swagger
-   * /alerts/{id}:
+   * /alerts/{teamId}:
    *   get:
    *     tags: [Alerts]
-   *     summary: Get an alert by ID
-   *     description: Retrieve an alert by ID
+   *     summary: Get all alerts by team ID
+   *     description: Retrieve a list of all alerts by team ID
    *     parameters:
    *       - in: path
-   *         name: id
+   *         name: teamId
    *         required: true
-   *         description: ID of the alert to retrieve
+   *         description: ID of the team to retrieve alerts
    *         schema:
    *           type: string
    *     responses:
    *       200:
-   *         description: An alert object
+   *         description: A list of alerts
    *       404:
-   *         description: Alert not found
+   *         description: Alerts not found
    */
   route.get(
-    '/:id',
+    '/team/:teamId',
+    // TODO: use middleware to check if the team is valid?
     verifyToken,
-    validateSchema(schemas.alerts.getAlertsSchema),
+    validateSchema(schemas.alerts.getTeamAlertsSchema),
     async (req: any, res: any) => {
-      const alert = await AlertsController.getAlertById(req);
-      res.status(200).json(alert);
+      const alerts = await AlertsController.getAlertsByTeam(req);
+      res.status(200).json(alerts);
     }
-);
+  );
+
+  route.post(
+    '/webhook/:teamId',
+    // TODO: add middleware to verify the webhook token
+    // verifyWebhookToken,
+    validateSchema(schemas.alerts.postAlertSchema),
+    async (req: any, res: any) => {
+      const newAlert = await AlertsController.createAlert(req);
+      res.status(201).json(newAlert);
+    }
+  )
 
   /**
    * @swagger
@@ -136,35 +154,33 @@ export const AlertRoutes = (app: Router): void => {
 
   /**
    * @swagger
-   * /alerts:
-   *   post:
+   * /alerts/{id}:
+   *   get:
    *     tags: [Alerts]
-   *     summary: Create a new alert
-   *     description: Create a new alert
-   *     requestBody:
-   *       required: true
-   *     content:
-   *       application/json:
+   *     summary: Get an alert by ID
+   *     description: Retrieve an alert by ID
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID of the alert to retrieve
    *         schema:
-   *           type: object
-   *           properties:
-   *             name:
-   *               type: string
-   *             description:
-   *               type: string
+   *           type: string
    *     responses:
-   *      201:
-   *        description: Alert created
+   *       200:
+   *         description: An alert object
+   *       404:
+   *         description: Alert not found
    */
-  route.post(
-    '/',
-    // TODO: how to handle duplicate alerts?
+  route.get(
+    '/:id',
     verifyToken,
-    validateSchema(schemas.alerts.postAlertSchema),
+    validateSchema(schemas.alerts.getAlertsSchema),
     async (req: any, res: any) => {
-      const newAlert = await AlertsController.createAlert(req);
-      res.status(201).json(newAlert);
-  });
+      const alert = await AlertsController.getAlertById(req);
+      res.status(200).json(alert);
+    }
+  );
 
   /**
    * @swagger
@@ -226,11 +242,43 @@ export const AlertRoutes = (app: Router): void => {
   route.delete(
     '/:id',
     verifyToken,
-    isAdmin,
+    isTeamAdmin,
     validateSchema(schemas.alerts.getAlertsSchema), 
     async (req: any, res: any) => {
       await AlertsController.deleteAlert(req);
       res.status(200).send({ message: 'Alert deleted' });
     }
   );
+
+  /**
+   * @swagger
+   * /alerts:
+   *   post:
+   *     tags: [Alerts]
+   *     summary: Create a new alert
+   *     description: Create a new alert
+   *     requestBody:
+   *       required: true
+   *     content:
+   *       application/json:
+   *         schema:
+   *           type: object
+   *           properties:
+   *             name:
+   *               type: string
+   *             description:
+   *               type: string
+   *     responses:
+   *      201:
+   *        description: Alert created
+   */
+  route.post(
+    '/',
+    // TODO: how to handle duplicate alerts?
+    verifyToken,
+    validateSchema(schemas.alerts.postAlertSchema),
+    async (req: any, res: any) => {
+      const newAlert = await AlertsController.createAlert(req);
+      res.status(201).json(newAlert);
+  });
 };

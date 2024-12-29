@@ -3,8 +3,9 @@ export type TeamMember = {
   teamId: string;
   userId: string;
   role: string;
+  color?: string;
   isAvailable: boolean;
-  latestOncall?: Date;
+  lastOnCall?: Date;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

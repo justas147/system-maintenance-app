@@ -34,19 +34,24 @@ export const UserRoutes = (app: Router): void => {
     '/profile',
     verifyToken, 
     async (req: any, res: any) => {
+      console.log("Getting user profile");
+
       const reqUser = req.user;
-      console.log('User:', reqUser.id);
       const user = await UsersData.findById(reqUser.id);
 
       if (!user) {
         throw new HttpError(404, 'User not found');
-      }
+      } 
+
+      // Get user team ids
+      const teamIds = await UsersData.findUserTeams(reqUser.id);
 
       res.status(200).json({
         id: user.id,
         name: user.name,
         email: user.email,
         googleId: user.googleId,
+        teamIds: teamIds,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       });
@@ -81,8 +86,8 @@ export const UserRoutes = (app: Router): void => {
       '/register',
       validateSchema(schemas.users.registerUserSchema), 
       async (req: Request, res: Response) => {
-        const result = UsersController.register(req);
-        res.json(result);
+        const result = await UsersController.register(req);
+        res.status(200).json(result);
       }
     );
 
@@ -143,7 +148,7 @@ export const UserRoutes = (app: Router): void => {
     validateSchema(schemas.users.postUserSchema),
     async (req: any, res: any) => {
       const newUser = UsersController.create(req);
-      res.json(newUser);
+      res.status(200).json(newUser);
     }
   );
 
@@ -183,8 +188,8 @@ export const UserRoutes = (app: Router): void => {
     verifyToken,
     validateSchema(schemas.users.updateUserSchema),
     async (req: any, res: any) => {
-      const updatedUser = UsersController.update(req);
-      res.json(updatedUser);
+      const updatedUser = await UsersController.update(req);
+      res.status(200).json(updatedUser);
     }
   );
 

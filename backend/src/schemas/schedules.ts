@@ -7,31 +7,40 @@ const getScheduleSchema: RequestValidationSchema = {
   }),
 };
 
+const getTeamUserScheduleSchema: RequestValidationSchema = {
+  params: Joi.object({
+    teamId: Joi.string().guid().required(),
+    userId: Joi.string().guid().required(),
+  }),
+};
+
 const getUserScheduleSchema: RequestValidationSchema = {
   params: Joi.object({
-    usedId: Joi.string().guid().required(),
+    userId: Joi.string().guid().required(),
   }),
 };
 
 const getTeamScheduleSchema: RequestValidationSchema = {
   params: Joi.object({
-    usedId: Joi.string().guid().required(),
+    teamId: Joi.string().guid().required(),
   }),
 };
 
 const postScheduleSchema: RequestValidationSchema = {
   body: Joi.object({
     isActive: Joi.boolean(),
-    startTime: Joi.date().required(),
-    endTime: Joi.date().required(),
+    startAt: Joi.date().required(),
+    endAt: Joi.date().required(),
+    teamId: Joi.string().guid().required(),
+    userId: Joi.string().guid().required(),
   }),
 };
 
 const updateScheduleSchema: RequestValidationSchema = {
   body: Joi.object({
     isActive: Joi.boolean(),
-    startTime: Joi.date().required(),
-    endTime: Joi.date().required(),
+    startAt: Joi.date().required(),
+    endAt: Joi.date().required(),
   }),
   params: Joi.object({
     id: Joi.string().guid().required(),
@@ -40,6 +49,7 @@ const updateScheduleSchema: RequestValidationSchema = {
 
 export default {
   getScheduleSchema,
+  getTeamUserScheduleSchema,
   getUserScheduleSchema,
   getTeamScheduleSchema,
   postScheduleSchema,

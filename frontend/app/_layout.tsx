@@ -1,40 +1,20 @@
-import { Colors } from "@/constants/Colors";
-import { Stack } from "expo-router";
-import { useColorScheme } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { MD2LightTheme, MD3DarkTheme, PaperProvider, adaptNavigationTheme } from "react-native-paper";
-import {
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationDefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-
-const darkTheme = { ...MD3DarkTheme, colors: Colors.dark };
-const lightTheme = { ...MD2LightTheme, colors: Colors.light };
+import { Slot } from "expo-router";
+import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Api } from "@/constants/Api";
 
 export default function RootLayout() {
-  // const colorScheme = useColorScheme();
-  const colorScheme = 'light';
-
-  const { LightTheme, DarkTheme } = adaptNavigationTheme({
-    reactNavigationLight: NavigationDefaultTheme,
-    reactNavigationDark: NavigationDarkTheme,
-  });
-  
-
-  const paperTheme = colorScheme === 'dark' ? DarkTheme : LightTheme;
+  // TODO: Add dark mode support
+  // let colorScheme = useColorScheme();
+  let colorScheme = "light";
+  console.log("colorScheme", colorScheme);
+  const theme = colorScheme === "dark" ? MD3DarkTheme : MD3LightTheme;
 
   return (
-    <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={paperTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={
-            { headerShown: false }
-          } />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
-      <StatusBar style={colorScheme === "dark" ? "dark" : "light"} />
-    </PaperProvider>
+    <SafeAreaProvider>
+      <PaperProvider theme={theme}> 
+        <Slot />
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }

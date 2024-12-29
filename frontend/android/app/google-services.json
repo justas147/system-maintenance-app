@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "944376058576",
+    "project_id": "system-maintenance-app",
+    "storage_bucket": "system-maintenance-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:944376058576:android:5aaa573c873bf1710c04d5",
+        "android_client_info": {
+          "package_name": "com.jusrad.systemmaintenanceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5kjlvFpA40QkZCBKezWb2sJnLqMJYUZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

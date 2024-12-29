@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { RequestValidationSchema } from './types/Schema';
-import { team } from 'data/seeds/02-teams';
+import { NotificationType } from 'modules/teams/types/Team';
 
 const getTeamSchema: RequestValidationSchema = {
   params: Joi.object({
@@ -36,8 +36,8 @@ const postTeamSchema: RequestValidationSchema = {
 
 const updateTeamSchema: RequestValidationSchema = {
   body: Joi.object({
-    name: Joi.string().required(),
-    configuration: Joi.string(),
+    name: Joi.string(),
+    notificationType: Joi.string(),
   }),
   params: Joi.object({
     id: Joi.string().guid().required(),

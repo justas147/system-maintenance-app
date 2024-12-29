@@ -1,3 +1,8 @@
+export const NotificationType = {
+  PUSH_NOTIFICATION: 'push-notification',
+  ALARM: 'alarm',
+} as const;
+
 export type Team = {
   id: string;
   name: string;

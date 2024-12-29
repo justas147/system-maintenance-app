@@ -4,6 +4,8 @@ export type User = {
   email: string;
   googleId?: string;
   password?: string;
+  pushNotificationToken?: string;
+  isSuperAdmin?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
