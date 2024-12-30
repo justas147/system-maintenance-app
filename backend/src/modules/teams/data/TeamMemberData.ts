@@ -1,6 +1,7 @@
 import { knex } from '../../../data/providers/KnexProvider';
 import { NewTeam } from '../types/Team';
 import { NewTeamMember, TeamMember, TeamMemberUpdate } from '../types/TeamMember';
+import { v4 as uuid } from 'uuid';
 
 const getTeamMembersTable = () => {
   return knex.table('team_members');
@@ -52,8 +53,19 @@ const findTeamMembers = async (teamId: string): Promise<any[]> => {
 }
 
 const addTeamMember = async (teamMember: NewTeamMember): Promise<TeamMember> => {
-  const [createdTeamMember] = await getTeamMembersTable().insert(teamMember).returning('*');
-  return createdTeamMember;
+  const id = uuid();
+  await getTeamMembersTable().insert({
+    id,
+    ...teamMember,
+  });
+
+  const foundTeamMember = await findById(id);
+
+  if (!foundTeamMember) {
+    throw new Error('Failed to create team member');
+  }
+
+  return foundTeamMember;
 }
 
 const removeTeamMember = async (teamId: string, userId: string): Promise<void> => {

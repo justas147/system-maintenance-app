@@ -4,12 +4,25 @@ import { router } from 'expo-router';
 import { useBoundStore } from '@/state';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import CustomButton from '@/components/common/CustomButton';
+import { validateEmail } from '@/utils/validation';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const register = useBoundStore(state => state.register);
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (validateEmail(text)) {
+      setEmailError('');
+    } else {
+      setEmailError('Please enter a valid email address.');
+    }
+  };
 
   const handleRegister = async () => {
     setLoading(true);
@@ -17,12 +30,14 @@ const Register = () => {
     let pushTokenString;
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+    console.log("projectId", projectId);
     try {
       pushTokenString = (
         await Notifications.getExpoPushTokenAsync({
           projectId,
         })
       ).data;
+    console.log("pushTokenString", pushTokenString);
     } catch (e: unknown) {
       const errorMessage = `Failed to get push token for push notification! ${e}`;
       alert(errorMessage);
@@ -30,7 +45,7 @@ const Register = () => {
     }
 
     try {
-      await useBoundStore.getState().register(username, email, password, pushTokenString);
+      await register(username, email, password, pushTokenString);
       router.replace("/");
     } catch (error) {
       console.error(error);
@@ -52,27 +67,29 @@ const Register = () => {
         style={styles.input}
         placeholder="Email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={handleEmailChange}
         keyboardType="email-address"
+        autoCapitalize='none'
       />
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
       <TextInput
         style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
+        autoCapitalize='none'
         secureTextEntry
       />
-      <Button 
+
+      <CustomButton 
         title="Register" 
         onPress={handleRegister} 
         disabled={loading}
       />
-      <View style={styles.marginUp}>
-        <Button 
-          title="Back to Login" 
-          onPress={() => router.replace("/login")} 
-        />
-      </View>
+      <CustomButton 
+        title="Back to Login" 
+        onPress={() => router.replace("/login")} 
+      />
     </View>
   );
 };
@@ -97,6 +114,10 @@ const styles = StyleSheet.create({
   },
   marginUp: {
     marginTop: 12,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 

@@ -1,19 +1,48 @@
 import BackHeader from '@/components/BackHeader';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { useBoundStore } from '@/state';
+import { handleError } from '@/utils/error';
+import { validateEmail } from '@/utils/validation';
 
 const AddTeamMember = () => {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [emailError, setEmailError] = useState('');
 
-  const handleAddMember = () => {
-    if (email && name) {
-      // TODO: Add your logic to add the team member via email
-      Alert.alert('Success', `Team member with email ${email} added!`);
-      setEmail('');
+  const inviteMember = useBoundStore(state => state.inviteMember);
+  const team = useBoundStore(state => state.selectedTeam);
+  const teamError = useBoundStore(state => state.teamError);
+  const isLoadingTeams = useBoundStore(state => state.isLoadingTeams);
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (validateEmail(text)) {
+      setEmailError('');
     } else {
-      Alert.alert('Error', 'Please enter a valid email address.');
+      setEmailError('Please enter a valid email address.');
     }
+  };
+
+  const handleAddMember = async () => {
+    if (!validateEmail(email) || !email) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!team) {
+      handleError('No team selected');
+      return;
+    }
+
+    await inviteMember(team.id, email);
+
+    if (teamError) {
+      handleError(teamError);
+      return;
+    }
+
+    Alert.alert('Success', `Team member with email ${email} added!`);
+    setEmail('');
   };
 
   return (
@@ -22,19 +51,12 @@ const AddTeamMember = () => {
       <TextInput
         style={styles.input}
         placeholder="Enter email"
-        value={name}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={handleEmailChange}
         keyboardType="email-address"
         autoCapitalize="none"
       />
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
       <Button title="Add Member" onPress={handleAddMember} />
     </View>
   );
@@ -57,6 +79,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 8,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 

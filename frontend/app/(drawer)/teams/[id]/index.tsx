@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
-import { List, Text } from 'react-native-paper';
+import { View, Button, StyleSheet, Alert } from 'react-native';
+import { Divider, List, Text } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { useBoundStore } from '@/state';
 import { Team } from '@/state/teams';
 import { router } from 'expo-router';
 import BackHeader from '@/components/BackHeader';
 import { handleError } from '@/utils/error';
+import CustomButton from '@/components/common/CustomButton';
 
 const TeamDetails = () => {
   const route = useRoute();
@@ -44,8 +45,9 @@ const TeamDetails = () => {
       return;
     }
 
-    await removeStateTeam(team.id);
-    router.replace('/teams');
+    Alert.alert("Current disabled", "Team deletion is currently disabled");
+    // await removeStateTeam(team.id);
+    // router.replace('/teams');
   };
 
   // TODO: fix redirect to add and edit pages
@@ -56,32 +58,31 @@ const TeamDetails = () => {
         title={team?.name ?? "Team details"}
       />
 
-      <Text variant="titleMedium">Notification type:</Text>
-      <Text variant='bodyMedium'>{team?.notificationType}</Text>
+      <View style={{ marginBottom: 8 }}>
+        <Text variant="titleMedium">Notification type:</Text>
+        <Text variant='bodyMedium'>{team?.notificationType}</Text>
+      </View>
+      <Divider /> 
 
-      <Text variant="titleMedium">Members:</Text>
-      <Text variant='bodyMedium'>{team?.members.length}</Text>
+      <View style={{ marginTop: 8 }}>
+        <Text variant="titleMedium">Members:</Text>
+        <Text variant='bodyMedium'>{team?.members.length}</Text>
+      </View>
 
       { role === 'admin' && 
-        <View style={styles.button}>
-          <Button 
-            title="Add New User" 
-            onPress={() => router.push(`teams/${team?.id}/add`)}
-          />
-        </View>
+        <CustomButton 
+          title="Add New User" 
+          onPress={() => router.push(`teams/${team?.id}/add`)}
+        />
       }
       { role === 'admin' && 
-        <View style={styles.button}>
-          <Button 
-            title="Edit Team Data" 
-            onPress={() => router.push(`teams/${team?.id}/edit`)} 
-          />
-        </View>
+        <CustomButton 
+          title="Edit Team Data" 
+          onPress={() => router.push(`teams/${team?.id}/edit`)} 
+        />
       }
       { role === 'admin' && 
-        <View style={styles.button}>
-          <Button title="Delete Team" onPress={handleTeamDelete} />
-        </View>
+        <CustomButton title="Delete Team" onPress={handleTeamDelete} />
       }
     </View>
   );

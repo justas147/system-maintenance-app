@@ -21,6 +21,7 @@ const createTeamMember = async (NewTeamMemberData: NewTeamMember) => {
   }
 
   const newTeamMember = await TeamMemberData.addTeamMember(NewTeamMemberData);
+  console.log(`Creating team member: ${newTeamMember.id}`);
   return newTeamMember;
 };
 

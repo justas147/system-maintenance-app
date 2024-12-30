@@ -26,6 +26,11 @@ export type TeamDto = Team & {
   members: TeamMemberDto[];
 }
 
+export type TeamEditDto = {
+  name: string;
+  notificationType: string;
+}
+
 export interface TeamSelect {
   id: string;
   name: string;
@@ -42,9 +47,10 @@ export interface TeamSlice {
   setSelectTeam: (team: TeamSelect) => void;
   fetchTeam(id: string): Promise<TeamDto>;
   createTeam: (team: NewTeam, userId: string) => void;
+  inviteMember: (teamId: string, email: string) => void;
   addTeam: (team: Team) => void;
   removeTeam: (id: string) => void;
-  updateTeam: (id: string, team: Team) => void;
+  updateTeam: (id: string, team: TeamEditDto) => void;
   clearTeams: () => void;
 }
 
@@ -112,8 +118,29 @@ export const createTeamSlice: StateCreator<
       });
     }
   },
+  inviteMember: async (teamId: string, email: string) => {
+    set({ isLoadingTeams: true });
+
+    try {
+      const team = await TeamService.inviteMember(teamId, email);
+
+      if (!team) {
+        throw new Error("Failed to invite member");
+      }
+
+      set({ 
+        isLoadingTeams: false,
+        teamError: "",
+      });
+    } catch (error) {
+      set({ 
+        teamError: "Failed to invite member",
+        isLoadingTeams: false,
+      });
+    }
+  },
   removeTeam: (id: string) => set((state) => ({ teams: state.teams.filter((team) => team.id !== id) })),
-  updateTeam: (id: string, team: Team) => async () => {
+  updateTeam: async (id: string, team: TeamEditDto) => {
     set({ isLoadingTeams: true });
 
     try {
@@ -124,9 +151,11 @@ export const createTeamSlice: StateCreator<
       }
 
       const currentTeams = get().teams;
+      const currentTeamSelect = get().teamSelect;
       set({ 
         selectedTeam: updatedTeam,
         teams: currentTeams.map((t) => t.id === id ? updatedTeam : t),
+        teamSelect: currentTeamSelect.map((t) => t.id === id ? { ...t, name: updatedTeam.name } : t),
         teamError: "",
       });
     } catch (error) {

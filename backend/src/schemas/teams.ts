@@ -23,7 +23,9 @@ const getTeamMembersSchema: RequestValidationSchema = {
 const getTeamBothIdsSchema: RequestValidationSchema = {
   params: Joi.object({
     teamId: Joi.string().guid().required(),
-    userId: Joi.string().guid().required(),
+  }),
+  body: Joi.object({
+    email: Joi.string().email().required(),
   }),
 };
 

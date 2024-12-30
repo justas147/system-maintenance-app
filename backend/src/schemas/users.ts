@@ -31,7 +31,7 @@ const registerUserSchema: RequestValidationSchema = {
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
-    pushNotificationToken: Joi.string().allow(null),
+    pushNotificationToken: Joi.string().required(),
   }),
 };
 

@@ -10,7 +10,7 @@
     "knex:rollback": "knex migrate:rollback --knexfile dist/data/knexfile.js",
     "knex:seed": "knex seed:run --knexfile dist/data/knexfile.js",
     "alertChecker:development": "nodemon src/scripts/alertChecker.ts",
-    "alertChecker:production": "node dist/utils/alertChecker.js"
+    "alertChecker:production": "node dist/scripts/alertChecker.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -16,7 +16,10 @@ export const isTeamAdmin = async (req: Request, res: Response, next: NextFunctio
     throw new HttpError(400, 'User ID and team ID are required');
   }
 
-  const member = await TeamMembersData.findTeamMember(userId, teamId);
+  console.log('Checking if user is admin', userId, teamId);
+
+  const member = await TeamMembersData.findTeamMember(teamId, userId);
+  console.log('Checking if user is admin', member?.role);
 
   if (!member || member.role !== UserRole.ADMIN) {
     throw new HttpError(403, 'You are not authorized to perform this action');

@@ -9,7 +9,7 @@ const register = async (name: string, email: string, password: string, pushToken
       name,
       email,
       password,
-      pushTokenString,
+      pushNotificationToken: pushTokenString,
     });
 
     if (response.status !== 200) {

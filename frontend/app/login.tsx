@@ -1,19 +1,32 @@
 import { useBoundStore } from '@/state';
 import { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Pressable } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
 import { router } from 'expo-router';
 import { handleError } from '@/utils/error';
 import CustomBanner from '@/components/CustomBanner';
 import { useTheme } from 'react-native-paper';
+import CustomButton from '@/components/common/CustomButton';
+import { validateEmail } from '@/utils/validation';
 
 export default function Login() {
+  const login = useBoundStore(state => state.login);
   const theme = useTheme();
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (validateEmail(text)) {
+      setEmailError('');
+    } else {
+      setEmailError('Please enter a valid email address.');
+    }
+  };
 
   const [email, setEmail] = useState(
     process.env.NODE_ENV === "development" ? 
       (process.env.EXPO_PUBLIC_DEV_USERNAME ?? "") : 
       ""
   );
+  const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState(
     process.env.NODE_ENV === "development" ? 
       (process.env.EXPO_PUBLIC_DEV_PASSWORD ?? "") : 
@@ -24,16 +37,11 @@ export default function Login() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const response = await useBoundStore.getState().login(email, password);
-
-      if (response.error) {
-        handleError(response.message);
-      }
-
+      const response = await login(email, password);
       router.replace("/");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
-      handleError(errorMessage);
+      const errorMessage = error instanceof Error ? error.message : "unknown error";
+      handleError("An error occurred while logging in: " + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -41,13 +49,17 @@ export default function Login() {
 
   return (
     <View>
+      <CustomBanner />
       <View style={styles.container}>
         <TextInput
           style={styles.input}
           placeholder="Email"
           value={email}
-          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize='none'
+          onChangeText={handleEmailChange}
         />
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -57,13 +69,8 @@ export default function Login() {
           autoCapitalize='none'
         />
 
-        <Pressable style={styles.button} onPress={handleLogin} disabled={loading}>
-          <Text style={styles.text}>Login</Text>
-        </Pressable>
-
-        <Pressable style={styles.button} onPress={() => router.push("/register")}>
-          <Text style={styles.text}>Register</Text>
-        </Pressable>
+        <CustomButton onPress={handleLogin} disabled={loading} title="Login" />
+        <CustomButton onPress={() => router.push("/register")} title="Register" />
       </View>
     </View>
   );
@@ -94,8 +101,13 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    margin: 8,
+    borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 4,
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });

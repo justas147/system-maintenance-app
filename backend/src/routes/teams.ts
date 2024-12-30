@@ -261,7 +261,7 @@ export const TeamRoutes = (app: Router): void => {
    *         description: Invalid request  
    */
   route.post(
-    '/:teamId/members/:userId',
+    '/:teamId/invite',
     verifyToken,
     isTeamAdmin,
     validateSchema(schemas.teams.getTeamBothIdsSchema),

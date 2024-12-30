@@ -7,6 +7,8 @@ import TeamsService from "./TeamsService";
 import { TeamMember } from "./types/TeamMember";
 import { Team } from "./types/Team";
 import { TeamDto } from "./types/TeamDto";
+import UsersData from "../../modules/users/UsersData";
+import { generateLightHexColor } from "../../utils/colorUtils";
 
 const getAll = async () => {
   console.log('Getting all teams');
@@ -70,11 +72,27 @@ const getUserTeam = async (req: Request): Promise<Team[]> => {
 }
 
 const updateTeam = async (req: Request): Promise<Team> => {
-  const { teamId } = req.params;
-  const { name } = req.body;
-  console.log(`Updating team: ${teamId}`);
-  const updatedTeam = await TeamData.updateTeam(teamId, { name });
-  return updatedTeam;
+  const { id } = req.params;
+
+  console.log(`Updating team: ${id}`);
+
+  try {
+    const team = pick(req.body, [
+      'name',
+      'notificationType',
+    ]);
+
+    console.log('Team', team);
+
+    const updatedTeam = await TeamData.updateTeam(id, { ...team });
+    return updatedTeam;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    throw new HttpError(500, error.message);
+  }
 }
 
 const deleteTeam = async (req: Request): Promise<void> => {
@@ -91,14 +109,33 @@ const getTeamMembers = async (req: Request): Promise<TeamMember[]> => {
 }
 
 const addTeamMember = async (req: Request): Promise<TeamMember> => {
-  const { teamId, userId } = req.params;
-  console.log(`Adding team member: ${userId} to team: ${teamId}`);
-  const addTeamMember = pick(req.body, [
-    'role',
-    'isAvailable',
-  ]);
+  const { teamId } = req.params;
+  const { email } = req.body;
+  console.log(`Adding team member: ${email} to team: ${teamId}`);
 
-  return await TeamsService.createTeamMember({ teamId, userId, ...addTeamMember });
+  try {
+    const user = await UsersData.findByEmail(email);
+
+    console.log('User found', user);
+
+    if (!user) {
+      throw new HttpError(404, 'User not found');
+    }
+  
+    return await TeamsService.createTeamMember({
+      teamId,
+      userId: user.id,
+      role: 'member',
+      isAvailable: true,
+      color: generateLightHexColor(),
+    });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    throw new HttpError(500, error.message);
+  }
 }
 
 const removeTeamMember = async (req: Request): Promise<void> => {
